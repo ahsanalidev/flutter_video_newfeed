@@ -45,19 +45,9 @@ class _VideoNewFeedScreenState<V extends VideoInfo>
   ///
   bool _isOnPageTurning = false;
 
-  final _listVideoStream = StreamController<List<V>>();
-
   /// Temp to update list video data
   ///
   List<V> temps = [];
-
-  void setList(List<V> items) {
-    if (!_listVideoStream.isClosed) {
-      _listVideoStream.sink.add(items);
-    }
-  }
-
-  void _notifyDataChanged() => setList(temps);
 
   /// Check to play next video when user scroll
   /// If the next video appear about 30% (0.7) the next video will play
@@ -84,14 +74,6 @@ class _VideoNewFeedScreenState<V extends VideoInfo>
     super.initState();
     _pageController = PageController(keepPage: widget.keepPage);
     _pageController.addListener(_scrollListener);
-    _getListVideo();
-  }
-
-  void _getListVideo() {
-    widget.api.getListVideo().then((value) {
-      temps.addAll(value);
-      _notifyDataChanged();
-    });
   }
 
   @override
@@ -105,7 +87,6 @@ class _VideoNewFeedScreenState<V extends VideoInfo>
   @override
   void dispose() {
     _pageController.dispose();
-    _listVideoStream.close();
     super.dispose();
   }
 
@@ -113,7 +94,7 @@ class _VideoNewFeedScreenState<V extends VideoInfo>
   ///
   Widget _renderVideoPageView() {
     return StreamBuilder<List<VideoInfo>>(
-        stream: _listVideoStream.stream,
+        stream: widget.api.getListVideo(),
         builder: (context, snapshot) {
           if (!snapshot.hasData || snapshot.data!.isEmpty)
             return Center(
